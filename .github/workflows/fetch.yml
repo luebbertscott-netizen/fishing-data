@@ -20,24 +20,43 @@ jobs:
           const fs = require('fs');
 
           async function fetch(url, file) {
+            console.log("Fetching:", url);
             return new Promise((resolve, reject) => {
               https.get(url, res => {
+                console.log("Status:", res.statusCode);
                 let data = "";
                 res.on("data", chunk => data += chunk);
                 res.on("end", () => {
-                  fs.writeFileSync(file, data);
-                  resolve();
+                  try {
+                    fs.writeFileSync(file, data);
+                    console.log("Wrote file:", file);
+                    resolve();
+                  } catch (err) {
+                    console.error("Write error:", err);
+                    reject(err);
+                  }
                 });
-                res.on("error", reject);
-              }).on("error", reject);
+                res.on("error", err => {
+                  console.error("Response error:", err);
+                  reject(err);
+                });
+              }).on("error", err => {
+                console.error("Request error:", err);
+                reject(err);
+              });
             });
           }
 
           (async () => {
-            await fetch(
-              "https://mdc.mo.gov/sites/default/files/feeds/fishing_reports.json",
-              "mdc.json"
-            );
+            try {
+              await fetch(
+                "https://mdc.mo.gov/sites/default/files/feeds/fishing_reports.json",
+                "mdc.json"
+              );
+            } catch (err) {
+              console.error("Fatal error:", err);
+              process.exit(1);
+            }
           })();
           EOF
 
@@ -48,24 +67,43 @@ jobs:
           const fs = require('fs');
 
           async function fetch(url, file) {
+            console.log("Fetching:", url);
             return new Promise((resolve, reject) => {
               https.get(url, res => {
+                console.log("Status:", res.statusCode);
                 let data = "";
                 res.on("data", chunk => data += chunk);
                 res.on("end", () => {
-                  fs.writeFileSync(file, data);
-                  resolve();
+                  try {
+                    fs.writeFileSync(file, data);
+                    console.log("Wrote file:", file);
+                    resolve();
+                  } catch (err) {
+                    console.error("Write error:", err);
+                    reject(err);
+                  }
                 });
-                res.on("error", reject);
-              }).on("error", reject);
+                res.on("error", err => {
+                  console.error("Response error:", err);
+                  reject(err);
+                });
+              }).on("error", err => {
+                console.error("Request error:", err);
+                reject(err);
+              });
             });
           }
 
           (async () => {
-            await fetch(
-              "https://ksoutdoors.com/api/fishing-reports",
-              "kdwp.json"
-            );
+            try {
+              await fetch(
+                "https://ksoutdoors.com/api/fishing-reports",
+                "kdwp.json"
+              );
+            } catch (err) {
+              console.error("Fatal error:", err);
+              process.exit(1);
+            }
           })();
           EOF
 
