@@ -13,66 +13,34 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install system dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            libnss3 \
-            libatk1.0-0 \
-            libatk-bridge2.0-0 \
-            libcups2 \
-            libxkbcommon0 \
-            libxcomposite1 \
-            libxdamage1 \
-            libxrandr2 \
-            libgbm1 \
-            libasound2 \
-            libxshmfence1
-
-      - name: Install Playwright
-        run: |
-          npm init -y
-          npm install playwright
-
-      # ⭐ Force installation of FULL Chromium (not headless_shell)
-      - name: Install Playwright Browsers
-        run: |
-          npx playwright install chromium
-
       - name: Fetch MDC JSON
         run: |
           node - << 'EOF'
+          const https = require('https');
           const fs = require('fs');
-          const { chromium } = require('playwright');
 
-          (async () => {
-            // ⭐ Force Playwright to use full Chromium
-            const browser = await chromium.launch({ channel: 'chromium' });
-            const page = await browser.newPage();
-            await page.goto("https://mdc.mo.gov/sites/default/files/feeds/fishing_reports.json", { waitUntil: "networkidle" });
-            const content = await page.content();
-            const json = content.replace(/<[^>]*>/g, "");
-            fs.writeFileSync("mdc.json", json);
-            await browser.close();
-          })();
+          https.get("https://mdc.mo.gov/sites/default/files/feeds/fishing_reports.json", res => {
+            let data = "";
+            res.on("data", chunk => data += chunk);
+            res.on("end", () => {
+              fs.writeFileSync("mdc.json", data);
+            });
+          });
           EOF
 
       - name: Fetch KDWP JSON
         run: |
           node - << 'EOF'
+          const https = require('https');
           const fs = require('fs');
-          const { chromium } = require('playwright');
 
-          (async () => {
-            // ⭐ Force Playwright to use full Chromium
-            const browser = await chromium.launch({ channel: 'chromium' });
-            const page = await browser.newPage();
-            await page.goto("https://ksoutdoors.com/api/fishing-reports", { waitUntil: "networkidle" });
-            const content = await page.content();
-            const json = content.replace(/<[^>]*>/g, "");
-            fs.writeFileSync("kdwp.json", json);
-            await browser.close();
-          })();
+          https.get("https://ksoutdoors.com/api/fishing-reports", res => {
+            let data = "";
+            res.on("data", chunk => data += chunk);
+            res.on("end", () => {
+              fs.writeFileSync("kdwp.json", data);
+            });
+          });
           EOF
 
       - name: Commit JSON
