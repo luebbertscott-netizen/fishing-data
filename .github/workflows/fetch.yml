@@ -2,7 +2,7 @@ name: Fetch Fishing Reports
 
 on:
   schedule:
-    - cron: "0 */6 * * *"   # every 6 hours
+    - cron: "0 */6 * * *"
   workflow_dispatch:
 
 jobs:
@@ -11,12 +11,15 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Install Playwright
         run: |
           npm init -y
           npm install playwright
+
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps
 
       - name: Fetch MDC JSON
         run: |
@@ -59,3 +62,5 @@ jobs:
           git add mdc.json kdwp.json
           git commit -m "Update fishing data" || echo "No changes"
           git push
+
+
