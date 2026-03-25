@@ -13,6 +13,21 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libnss3 \
+            libatk1.0-0 \
+            libatk-bridge2.0-0 \
+            libcups2 \
+            libxkbcommon0 \
+            libxcomposite1 \
+            libxdamage1 \
+            libxrandr2 \
+            libgbm1 \
+            libasound2
+
       - name: Install Playwright
         run: |
           npm init -y
@@ -62,5 +77,4 @@ jobs:
           git add mdc.json kdwp.json
           git commit -m "Update fishing data" || echo "No changes"
           git push
-
 
