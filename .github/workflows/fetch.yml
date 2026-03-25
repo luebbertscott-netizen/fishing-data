@@ -1,0 +1,61 @@
+name: Fetch Fishing Reports
+
+on:
+  schedule:
+    - cron: "0 */6 * * *"   # every 6 hours
+  workflow_dispatch:
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Install Playwright
+        run: |
+          npm init -y
+          npm install playwright
+
+      - name: Fetch MDC JSON
+        run: |
+          node - << 'EOF'
+          const fs = require('fs');
+          const { chromium } = require('playwright');
+
+          (async () => {
+            const browser = await chromium.launch();
+            const page = await browser.newPage();
+            await page.goto("https://mdc.mo.gov/sites/default/files/feeds/fishing_reports.json", { waitUntil: "networkidle" });
+            const content = await page.content();
+            const json = content.replace(/<[^>]*>/g, "");
+            fs.writeFileSync("mdc.json", json);
+            await browser.close();
+          })();
+          EOF
+
+      - name: Fetch KDWP JSON
+        run: |
+          node - << 'EOF'
+          const fs = require('fs');
+          const { chromium } = require('playwright');
+
+          (async () => {
+            const browser = await chromium.launch();
+            const page = await browser.newPage();
+            await page.goto("https://ksoutdoors.com/api/fishing-reports", { waitUntil: "networkidle" });
+            const content = await page.content();
+            const json = content.replace(/<[^>]*>/g, "");
+            fs.writeFileSync("kdwp.json", json);
+            await browser.close();
+          })();
+          EOF
+
+      - name: Commit JSON
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add mdc.json kdwp.json
+          git commit -m "Update fishing data" || echo "No changes"
+          git push
