@@ -19,13 +19,26 @@ jobs:
           const https = require('https');
           const fs = require('fs');
 
-          https.get("https://mdc.mo.gov/sites/default/files/feeds/fishing_reports.json", res => {
-            let data = "";
-            res.on("data", chunk => data += chunk);
-            res.on("end", () => {
-              fs.writeFileSync("mdc.json", data);
+          async function fetch(url, file) {
+            return new Promise((resolve, reject) => {
+              https.get(url, res => {
+                let data = "";
+                res.on("data", chunk => data += chunk);
+                res.on("end", () => {
+                  fs.writeFileSync(file, data);
+                  resolve();
+                });
+                res.on("error", reject);
+              }).on("error", reject);
             });
-          });
+          }
+
+          (async () => {
+            await fetch(
+              "https://mdc.mo.gov/sites/default/files/feeds/fishing_reports.json",
+              "mdc.json"
+            );
+          })();
           EOF
 
       - name: Fetch KDWP JSON
@@ -34,13 +47,26 @@ jobs:
           const https = require('https');
           const fs = require('fs');
 
-          https.get("https://ksoutdoors.com/api/fishing-reports", res => {
-            let data = "";
-            res.on("data", chunk => data += chunk);
-            res.on("end", () => {
-              fs.writeFileSync("kdwp.json", data);
+          async function fetch(url, file) {
+            return new Promise((resolve, reject) => {
+              https.get(url, res => {
+                let data = "";
+                res.on("data", chunk => data += chunk);
+                res.on("end", () => {
+                  fs.writeFileSync(file, data);
+                  resolve();
+                });
+                res.on("error", reject);
+              }).on("error", reject);
             });
-          });
+          }
+
+          (async () => {
+            await fetch(
+              "https://ksoutdoors.com/api/fishing-reports",
+              "kdwp.json"
+            );
+          })();
           EOF
 
       - name: Commit JSON
