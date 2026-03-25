@@ -34,8 +34,10 @@ jobs:
           npm init -y
           npm install playwright
 
+      # ⭐ Force installation of FULL Chromium (not headless_shell)
       - name: Install Playwright Browsers
-        run: npx playwright install --with-deps
+        run: |
+          npx playwright install chromium
 
       - name: Fetch MDC JSON
         run: |
@@ -44,7 +46,8 @@ jobs:
           const { chromium } = require('playwright');
 
           (async () => {
-            const browser = await chromium.launch();
+            // ⭐ Force Playwright to use full Chromium
+            const browser = await chromium.launch({ channel: 'chromium' });
             const page = await browser.newPage();
             await page.goto("https://mdc.mo.gov/sites/default/files/feeds/fishing_reports.json", { waitUntil: "networkidle" });
             const content = await page.content();
@@ -61,7 +64,8 @@ jobs:
           const { chromium } = require('playwright');
 
           (async () => {
-            const browser = await chromium.launch();
+            // ⭐ Force Playwright to use full Chromium
+            const browser = await chromium.launch({ channel: 'chromium' });
             const page = await browser.newPage();
             await page.goto("https://ksoutdoors.com/api/fishing-reports", { waitUntil: "networkidle" });
             const content = await page.content();
