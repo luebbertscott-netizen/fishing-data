@@ -1,1 +1,63 @@
+// scrape_kdwp.js
+// KDWP Fishing Reports Scraper for GitHub Actions (Playwright)
+
+import { chromium } from "playwright";
+import fs from "fs";
+
+const KDWP_URL = "https://ksoutdoors.com/Fishing/Fishing-Reports";
+
+async function scrapeKDWP() {
+  console.log("Launching browser...");
+  const browser = await chromium.launch({ headless: true });
+  const page = await browser.newPage();
+
+  console.log("Navigating to KDWP...");
+  await page.goto(KDWP_URL, { waitUntil: "networkidle" });
+
+  console.log("Waiting for lake report sections...");
+  await page.waitForSelector(".panel.panel-default");
+
+  const reports = await page.$$eval(".panel.panel-default", (panels) => {
+    return panels.map((panel) => {
+      const lakeName =
+        panel.querySelector(".panel-heading")?.innerText.trim() || "Unknown";
+
+      const body = panel.querySelector(".panel-body");
+      if (!body) return null;
+
+      const rows = Array.from(body.querySelectorAll("tr"));
+
+      const speciesReports = rows.map((row) => {
+        const tds = row.querySelectorAll("td");
+        if (tds.length < 2) return null;
+
+        return {
+          species: tds[0].innerText.trim(),
+          report: tds[1].innerText.trim(),
+        };
+      }).filter(Boolean);
+
+      return {
+        lake: lakeName,
+        updated: new Date().toISOString(),
+        species: speciesReports,
+      };
+    }).filter(Boolean);
+  });
+
+  console.log(`Extracted ${reports.length} lake reports.`);
+
+  fs.writeFileSync("kdwp.json", JSON.stringify(reports, null, 2));
+  console.log("Saved kdwp.json");
+
+  await browser.close();
+}
+
+scrapeKDWP()
+  .then(() => console.log("KDWP scrape complete."))
+  .catch((err) => {
+    console.error("KDWP scrape failed:", err);
+    process.exit(1);
+  });
+
 
